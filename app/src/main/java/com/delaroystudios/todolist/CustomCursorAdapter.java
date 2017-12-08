@@ -18,9 +18,12 @@ package com.delaroystudios.todolist;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -31,6 +34,7 @@ import android.widget.Toast;
 
 import com.delaroystudios.todolist.R;
 import com.delaroystudios.todolist.data.TaskContract;
+import com.delaroystudios.todolist.MainActivity;
 
 /**
  * This CustomCursorAdapter creates and binds ViewHolders, that hold the description and priority of a task,
@@ -82,6 +86,7 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
         // Indices for the _id, description, and priority columns
         int idIndex = mCursor.getColumnIndex(TaskContract.TaskEntry._ID);
         int descriptionIndex = mCursor.getColumnIndex(TaskContract.TaskEntry.COLUMN_DESCRIPTION);
+        int listIndex = mCursor.getColumnIndex(TaskContract.TaskEntry.COLUMN_LIST);
         int priorityIndex = mCursor.getColumnIndex(TaskContract.TaskEntry.COLUMN_PRIORITY);
 
         mCursor.moveToPosition(position); // get to the right location in the cursor
@@ -89,11 +94,14 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
         // Determine the values of the wanted data
         final int id = mCursor.getInt(idIndex);
         String description = mCursor.getString(descriptionIndex);
+        String list = mCursor.getString(listIndex);
         int priority = mCursor.getInt(priorityIndex);
 
         //Set values
         holder.itemView.setTag(id);
         holder.taskDescriptionView.setText(description);
+        holder.taskDescriptionView.setTextColor(MainActivity.color[9]);
+        holder.listView.setText(list);
 
         // Programmatically set the text and color for the priority TextView
         String priorityString = "" + priority; // converts int to String
@@ -113,21 +121,10 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
     */
     private int getPriorityColor(int priority) {
         int priorityColor = 0;
-
-        switch(priority) {
-            case 1: priorityColor = ContextCompat.getColor(mContext, R.color.materialRed);
-                break;
-            case 2: priorityColor = ContextCompat.getColor(mContext, R.color.materialOrange);
-                break;
-            case 3: priorityColor = ContextCompat.getColor(mContext, R.color.materialYellow);
-                break;
-            case 4: priorityColor = ContextCompat.getColor(mContext, R.color.materialGreen);
-                break;
-            case 5: priorityColor = ContextCompat.getColor(mContext, R.color.materialBlue);
-                break;
-            case 6: priorityColor = ContextCompat.getColor(mContext, R.color.materialPurple);
-                break;
-            default: break;
+        for(int i = 0; i<8;i++){
+            if(priority == i+1){
+                return MainActivity.color[i];
+            }
         }
         return priorityColor;
     }
@@ -171,6 +168,7 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
         // Class variables for the task description and priority TextViews
         TextView taskDescriptionView;
         TextView priorityView;
+        TextView listView;
 
 
         /**
@@ -183,17 +181,18 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
 
             taskDescriptionView = (TextView) itemView.findViewById(R.id.taskDescription);
             priorityView = (TextView) itemView.findViewById(R.id.priorityTextView);
+            listView = (TextView) itemView.findViewById(R.id.listTextView);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(v.getContext(),"Clicked " + v.getTag(),Toast.LENGTH_SHORT).show();
                     Intent addTaskIntent = new Intent(v.getContext(),AddTaskActivity.class);
                     addTaskIntent.putExtra("editFlag",true);
                     addTaskIntent.putExtra("id",v.getTag().toString());
-                    Toast.makeText(v.getContext(),"Clicked " + priorityView.getText().toString(),Toast.LENGTH_SHORT).show();
                     Toast.makeText(v.getContext(),"Color " + priorityView.getText().toString(),Toast.LENGTH_SHORT).show();
                     addTaskIntent.putExtra("description",taskDescriptionView.getText().toString());
                     addTaskIntent.putExtra("priority",priorityView.getText().toString());
+                    addTaskIntent.putExtra("list",listView.getText().toString());
+                    addTaskIntent.putStringArrayListExtra("arrayListOfList",MainActivity.arrayListOfList);
                     v.getContext().startActivity(addTaskIntent);
 
                 }

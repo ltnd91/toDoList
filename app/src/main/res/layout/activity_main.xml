@@ -3,15 +3,17 @@
     This layout defines the main activity screen and displays a list of tasks (if they exist),
     and a floating action button that launches another activity.
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
         android:orientation="horizontal"
-        android:weightSum="6">
+        android:weightSum="8">
 
 
         <CheckBox
@@ -22,6 +24,7 @@
             android:layout_height="wrap_content"
             android:background="@color/materialRed"
             android:text=""
+            android:layout_weight="1"
             android:onClick="onCheckboxClicked"
             android:checked="true"/>
 
@@ -83,6 +86,28 @@
             android:layout_weight="1"
             android:onClick="onCheckboxClicked"
             android:checked="true"/>
+        <CheckBox
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@android:color/primary_text_light"
+            android:id="@+id/checkP7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/materialRed"
+            android:text=""
+            android:layout_weight="1"
+            android:onClick="onCheckboxClicked"
+            android:checked="true"/>
+        <CheckBox
+            style="?android:attr/buttonBarButtonStyle"
+            android:textColor="@android:color/primary_text_light"
+            android:id="@+id/checkP8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/materialPurple"
+            android:text=""
+            android:layout_weight="1"
+            android:onClick="onCheckboxClicked"
+            android:checked="true"/>
 
     </LinearLayout>
 
@@ -91,18 +116,73 @@
         android:id="@+id/recyclerViewTasks"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="110dp"
         android:paddingBottom="8dp"/>
 
     <!-- Floating action button that launches AddTaskActivity when clicked -->
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        app:srcCompat="@android:drawable/ic_input_add"
+        android:tint="@android:color/white"/>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabAddList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_input_add"
+        app:srcCompat="@android:drawable/ic_menu_agenda"
         android:tint="@android:color/white"/>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabDeleteList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginRight="60dp"
+        app:srcCompat="@android:drawable/ic_menu_delete"
+        android:tint="@android:color/white"/>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabEditColor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginLeft="60dp"
+        app:srcCompat="@android:drawable/ic_menu_gallery"
+        android:tint="@android:color/white"/>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/mainToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        <Spinner
+            android:id="@+id/mainSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/mainToolbar"
+            android:layout_alignStart="@+id/mainToolbar"
+            android:layout_below="@+id/mainToolbar"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
+            android:textColor="@color/colorPrimaryLight"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            android:popupBackground="@color/colorPrimaryDark"/>
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:hint="Text Search"
+            android:textSize="18sp"
+            />
+    </android.support.v7.widget.Toolbar>
+
 
 </FrameLayout>
 

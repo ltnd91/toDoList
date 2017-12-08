@@ -23,14 +23,30 @@
         android:hint="@string/edit_task_description"
         android:paddingBottom ="@dimen/activity_horizontal_margin"/>
 
-    <!-- TextView and FrameLayout (which contains buttons) for Priority Selection -->
     <TextView
+        android:id="@+id/listLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:textColor="@android:color/primary_text_light"
         style="@style/TextAppearance.AppCompat.Medium"
-        android:text="@string/priority_string"
+        android:text="Pick a list"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
+    <Spinner
+        android:id="@+id/addTaskSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:popupBackground="@color/colorPrimaryDark" />
+    <!-- TextView and FrameLayout (which contains buttons) for Priority Selection -->
+    <TextView
+        android:id="@+id/priorityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:textColor="@android:color/primary_text_light"
+        style="@style/TextAppearance.AppCompat.Medium"
+        android:text="Pick a color"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"/>
 
@@ -46,7 +62,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="center"
-            android:weightSum="3">
+            android:weightSum="8">
 
             <Button
                 style="?android:attr/buttonBarButtonStyle"
@@ -110,6 +126,26 @@
                 android:text=""
                 android:layout_weight="1"
                 android:onClick="onPrioritySelected"/>
+            <Button
+                style="?android:attr/buttonBarButtonStyle"
+                android:textColor="@android:color/primary_text_light"
+                android:id="@+id/buttonP7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/materialRed"
+                android:text=""
+                android:layout_weight="1"
+                android:onClick="onPrioritySelected"/>
+            <Button
+                style="?android:attr/buttonBarButtonStyle"
+                android:textColor="@android:color/primary_text_light"
+                android:id="@+id/buttonP8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/materialBlue"
+                android:text=""
+                android:layout_weight="1"
+                android:onClick="onPrioritySelected"/>
 
         </LinearLayout>
 
@@ -119,7 +155,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="center"
-            android:weightSum="6">
+            android:weightSum="8">
 
             <RadioButton
                 android:id="@+id/radButton1"
@@ -168,21 +204,41 @@
                 android:onClick="onPrioritySelected"
                 android:layout_weight="1"
                 android:theme="@style/WhiteRadioButton"/>
+            <RadioButton
+                android:id="@+id/radButton7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onPrioritySelected"
+                android:layout_weight="1"
+                android:theme="@style/WhiteRadioButton"/>
+            <RadioButton
+                android:id="@+id/radButton8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onPrioritySelected"
+                android:layout_weight="1"
+                android:theme="@style/WhiteRadioButton"/>
 
         </RadioGroup>
+
+
 
     </FrameLayout>
 
     <!-- Add button -->
     <Button
         android:id="@+id/addButton"
+        style="@style/TextAppearance.AppCompat.Large"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="@string/add_button"
-        style="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@android:color/primary_text_dark"
         android:background="@color/colorPrimary"
-        android:onClick="onClickAddTask"/>
+        android:onClick="onClickAddTask"
+        android:text="@string/add_button"
+        android:textColor="@android:color/primary_text_dark" />
+
+
+
+
 
 </LinearLayout>

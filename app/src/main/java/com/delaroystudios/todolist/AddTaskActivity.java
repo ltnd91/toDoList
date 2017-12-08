@@ -18,59 +18,110 @@ package com.delaroystudios.todolist;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.delaroystudios.todolist.R;
 import com.delaroystudios.todolist.data.TaskContract;
 
+import java.util.ArrayList;
 
+//12/7/17 did not refactor because no time can do later
 public class AddTaskActivity extends AppCompatActivity {
 
     // Declare a member variable to keep track of a task's selected mPriority
     private int mPriority;
-
+    Spinner addTaskSpinner;
+    ArrayList<String> arrayListOfList = new ArrayList<String>();
+    String selectedList = "garbage";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
+        addTaskSpinner = (Spinner) findViewById(R.id.addTaskSpinner);
         // Initialize to highest mPriority by default (mPriority = 1)
         ((RadioButton) findViewById(R.id.radButton1)).setChecked(true);
         mPriority = 1;
         Intent iin = getIntent();
         Bundle b = iin.getExtras();
+        arrayListOfList = b.getStringArrayList("arrayListOfList");
+        colorSetter();
+        ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(AddTaskActivity.this,
+                R.layout.custom_spinner_item,
+                arrayListOfList){
+            @Override
+            public View getDropDownView(int position, View convertView,ViewGroup parent) {
+                // TODO Auto-generated method stub
+
+                View view = super.getView(position, convertView, parent);
+
+                TextView text = (TextView)view;
+                text.setTextColor(Color.WHITE);
+                text.setTextSize(25);
+                return view;
+
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // TODO Auto-generated method stub
+
+                View view = super.getView(position, convertView, parent);
+
+                TextView text = (TextView)view;
+                text.setTextColor(Color.WHITE);
+                text.setTextSize(25);
+
+                return view;
+
+            }
+        };
+        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        addTaskSpinner.setAdapter(myAdapter);
+        selectedList = addTaskSpinner.getSelectedItem().toString();
+        addTaskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(AddTaskActivity.this,
+                        addTaskSpinner.getSelectedItem().toString(),
+                        Toast.LENGTH_SHORT)
+                        .show();
+                selectedList = addTaskSpinner.getSelectedItem().toString();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
         if ((Boolean)b.get("editFlag")) {
             ((EditText) findViewById(R.id.editTextTaskDescription)).setText(b.get("description").toString());
             mPriority = Integer.parseInt(b.get("priority").toString());
-            switch (mPriority) {
-                case 1:
-                    ((RadioButton) findViewById(R.id.radButton1)).setChecked(true);
+            String radButtonID; int resID;
+            for(int i = 1; i<9; i++){
+                radButtonID = "radButton" + i;
+                resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
+                if(mPriority==i){
+                    ((RadioButton) findViewById(resID)).setChecked(true);
                     break;
-                case 2:
-                    ((RadioButton) findViewById(R.id.radButton2)).setChecked(true);
-                    break;
-                case 3:
-                    ((RadioButton) findViewById(R.id.radButton3)).setChecked(true);
-                    break;
-                case 4:
-                    ((RadioButton) findViewById(R.id.radButton4)).setChecked(true);
-                    break;
-                case 5:
-                    ((RadioButton) findViewById(R.id.radButton5)).setChecked(true);
-                    break;
-                case 6:
-                    ((RadioButton) findViewById(R.id.radButton6)).setChecked(true);
-                    break;
-                default:
-                    break;
+                }
             }
         }
+        addTaskSpinner.setSelection(myAdapter.getPosition(b.get("list").toString()));
+        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+        textView.setBackgroundColor(MainActivity.color[(mPriority-1)]);
     }
 
 
@@ -106,6 +157,7 @@ public class AddTaskActivity extends AppCompatActivity {
         }
         contentValues.put(TaskContract.TaskEntry.COLUMN_DESCRIPTION, input);
         contentValues.put(TaskContract.TaskEntry.COLUMN_PRIORITY, mPriority);
+        contentValues.put(TaskContract.TaskEntry.COLUMN_LIST,selectedList);
         // Insert the content values via a ContentResolver
         Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, contentValues);
 
@@ -126,18 +178,38 @@ public class AddTaskActivity extends AppCompatActivity {
      * It changes the value of mPriority based on the selected button.
      */
     public void onPrioritySelected(View view) {
-        if (((RadioButton) findViewById(R.id.radButton1)).isChecked()) {
-            mPriority = 1;
-        } else if (((RadioButton) findViewById(R.id.radButton2)).isChecked()) {
-            mPriority = 2;
-        } else if (((RadioButton) findViewById(R.id.radButton3)).isChecked()) {
-            mPriority = 3;
-        } else if (((RadioButton) findViewById(R.id.radButton4)).isChecked()) {
-            mPriority = 4;
-        } else if (((RadioButton) findViewById(R.id.radButton5)).isChecked()) {
-            mPriority = 5;
-        } else if (((RadioButton) findViewById(R.id.radButton6)).isChecked()) {
-            mPriority = 6;
+        String radButtonID; int resID;
+        for(int i = 1; i<9; i++){
+            radButtonID = "radButton" + i;
+            resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
+            if (((RadioButton) findViewById(resID)).isChecked()) {
+                mPriority = i;
+                TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+                textView.setBackgroundColor(MainActivity.color[(i-1)]);
+                break;
+            }
         }
+    }
+    public void colorSetter(){
+        View someView;
+        String buttonID; int resID;
+        for(int i = 0;i<8;i++){
+            buttonID = "buttonP" + (i + 1);
+            resID = getResources().getIdentifier(buttonID, "id", getPackageName());
+            someView = findViewById(resID);
+            someView.setBackgroundColor(MainActivity.color[i]);
+        }
+        someView = findViewById(R.id.addTaskSpinner);
+        someView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        View root = someView.getRootView();
+        root.setBackgroundColor(MainActivity.color[8]);
+        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+        textView.setTextColor(MainActivity.color[9]);
+        textView.setHintTextColor(MainActivity.color[9]);
+        textView = (TextView) findViewById(R.id.priorityLabel);
+        textView.setTextColor(MainActivity.color[9]);
+        textView = (TextView) findViewById(R.id.listLabel);
+        textView.setTextColor(MainActivity.color[9]);
+
     }
 }

@@ -55,6 +55,7 @@ public class TaskContract {
         // "_ID" column in addition to the two below
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_PRIORITY = "priority";
+        public static final String COLUMN_LIST= "list";
 
 
         /*
@@ -64,19 +65,19 @@ public class TaskContract {
         Note: Because this implements BaseColumns, the _id column is generated automatically
 
         tasks
-         - - - - - - - - - - - - - - - - - - - - - -
-        | _id  |    description     |    priority   |
-         - - - - - - - - - - - - - - - - - - - - - -
-        |  1   |  Complete lesson   |       1       |
-         - - - - - - - - - - - - - - - - - - - - - -
-        |  2   |    Go shopping     |       3       |
-         - - - - - - - - - - - - - - - - - - - - - -
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        | _id  |    description     |    priority   |   list    |
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        |  1   |  Complete lesson   |       1       |    one    |
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        |  2   |    Go shopping     |       3       |    soe    |
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         .
         .
         .
-         - - - - - - - - - - - - - - - - - - - - - -
-        | 43   |   Learn guitar     |       2       |
-         - - - - - - - - - - - - - - - - - - - - - -
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        | 43   |   Learn guitar     |       2       |    joe    |
+         - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
          */
 

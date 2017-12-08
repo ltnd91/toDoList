@@ -16,51 +16,116 @@
 
 package com.delaroystudios.todolist;
 
+import android.app.AlertDialog;
 import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Editable;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SearchView;
 
 import com.delaroystudios.todolist.R;
 import com.delaroystudios.todolist.data.TaskContract;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-
+//-------------------------------------Global variables --------------------------------------------
     // Constants for logging and referring to a unique loader
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int TASK_LOADER_ID = 0;
-    private String search = "";
+
 
     // Member variables for the adapter and RecyclerView
     private CustomCursorAdapter mAdapter;
     RecyclerView mRecyclerView;
-    boolean filter[]=new boolean[6];
 
+    //global variables that are passed to other activities
+    public static int color[]=new int[10]; // color[0] to color[7] = groups color[8] = background color[9] = text
+    private String currentSpinnerText = "";
+    public static ArrayList<String> arrayListOfList = new ArrayList<String>();
+
+    //main variables only
+    boolean filter[]=new boolean[8];
+    Spinner mainSpinner;
+    private String searchText = "";
+//-------------------------------------Global variables --------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        colorSetter();
+        onCreateSetCheckBoxes();
 
+        onCreateConfigureTaskAdapter();
+        taskItemListener();
+
+        mainSpinner = (Spinner) findViewById(R.id.mainSpinner);
+        mainSpinnerListener();
+        onCreateFillarrayListOfList();
+        mainSpinnerUpdate("trash",1);
+        mainSpinner.setSelection(arrayListOfList.indexOf("trash"));
+
+        searchTextListener();
+
+        fabAddTaskListener();
+        fabEditColorListener();
+        fabDeleteListListener();
+        fabAddListListener();
+        /*
+         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
+         created, otherwise the last created loader is re-used.
+         */
+        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+    }
+
+    public void onCreateConfigureTaskAdapter(){
         // Set the RecyclerView to its corresponding view
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerViewTasks);
 
@@ -71,16 +136,14 @@ public class MainActivity extends AppCompatActivity implements
         // Initialize the adapter and attach it to the RecyclerView
         mAdapter = new CustomCursorAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
-        for(int i=0;i<6;i++){
-            filter[i]=true;
-        }
+    }
 
+    public void taskItemListener(){
         /*
          Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
          An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
          and uses callbacks to signal when a user is performing these actions.
          */
-
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -97,6 +160,15 @@ public class MainActivity extends AppCompatActivity implements
                 // Retrieve the id of the task to delete
                 int id = (int) viewHolder.itemView.getTag();
 
+                if(!(currentSpinnerText.equals("trash")))
+                {
+                    TextView taskDescriptionView = (TextView) viewHolder.itemView.findViewById(R.id.taskDescription);
+                    TextView priorityView = (TextView) viewHolder.itemView.findViewById(R.id.priorityTextView);
+                    moveToTrash(taskDescriptionView.getText().toString(),
+                            Integer.parseInt(priorityView.getText().toString()),
+                            "trash");
+                }
+
                 // Build appropriate uri with String row id appended
                 String stringId = Integer.toString(id);
                 Uri uri = TaskContract.TaskEntry.CONTENT_URI;
@@ -107,56 +179,307 @@ public class MainActivity extends AppCompatActivity implements
 
                 // COMPLETED (3) Restart the loader to re-query for all tasks after a deletion
                 getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-
             }
-
-
-
-
-
-
         }).attachToRecyclerView(mRecyclerView);
+    }
 
-
-
+    public void fabAddTaskListener(){
         /*
          Set the Floating Action Button (FAB) to its corresponding View.
          Attach an OnClickListener to it, so that when it's clicked, a new intent will be created
          to launch the AddTaskActivity.
          */
-        FloatingActionButton fabButton = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fabAddTask = (FloatingActionButton) findViewById(R.id.fabAddTask);
 
-        fabButton.setOnClickListener(new View.OnClickListener() {
+        fabAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Create a new intent to start an AddTaskActivity
                 Intent addTaskIntent = new Intent(MainActivity.this, AddTaskActivity.class);
-                addTaskIntent.putExtra("editFlag",false);
+                addTaskIntent.putExtra("editFlag", false);
+                addTaskIntent.putStringArrayListExtra("arrayListOfList", arrayListOfList);
+                addTaskIntent.putExtra("list", currentSpinnerText);
                 startActivity(addTaskIntent);
             }
         });
-
-        /*
-         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
-         created, otherwise the last created loader is re-used.
-         */
-        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 
+    public void fabEditColorListener(){
+        FloatingActionButton fabEditColor = (FloatingActionButton) findViewById(R.id.fabEditColor);
+
+        fabEditColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // we add editColorLoader temporarily because spinner color remains same
+                // despite changing colors unless we switch to a different spinner item
+                mainSpinnerUpdate("editColorLoader",1);
+                mainSpinner.setSelection(arrayListOfList.indexOf("editColorLoader"));
+                Intent colorIntent = new Intent(getApplicationContext(), AmbilWarnaDemoPreferenceActivity.class);
+                startActivity(colorIntent);
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Do something after 5s = 5000ms
+                        mainSpinnerUpdate("editColorLoader",2);
+                    }
+                }, 1000);
+
+            }
+        });
+    }
+
+    public void fabDeleteListListener(){
+        FloatingActionButton fabDeleteList = (FloatingActionButton) findViewById(R.id.fabDeleteList);
+
+        fabDeleteList.setOnClickListener(new View.OnClickListener() {
+            final String[] projection = {TaskContract.TaskEntry._ID,TaskContract.TaskEntry.COLUMN_DESCRIPTION,
+                    TaskContract.TaskEntry.COLUMN_LIST,TaskContract.TaskEntry.COLUMN_PRIORITY};
+            @Override
+
+            public void onClick(View view) {
+                if(arrayListOfList.size()>0){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage(Html.fromHtml("<h1 style =\"font-size:100%;\"><font color='"+color[9]+"'>Do you want to delete list " +
+                            mainSpinner.getSelectedItem().toString()+"</font></h1>"));
+                    builder.setCancelable(false);
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            currentSpinnerText = mainSpinner.getSelectedItem().toString();
+                            mainSpinnerUpdate(currentSpinnerText,2);
+                            mainSpinner.setSelection(arrayListOfList.indexOf("trash"));
+                            Cursor c = getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,
+                                    projection,
+                                    TaskContract.TaskEntry.COLUMN_LIST + " == '" + currentSpinnerText + "'",
+                                    null,
+                                    TaskContract.TaskEntry.COLUMN_PRIORITY);
+                            if(c.moveToFirst()) {
+                                do {
+                                    if(!(currentSpinnerText.equals("trash"))){
+                                        moveToTrash(c.getString(c.getColumnIndex(TaskContract.TaskEntry.COLUMN_DESCRIPTION)),
+                                                c.getInt(c.getColumnIndex(TaskContract.TaskEntry.COLUMN_PRIORITY)),"trash");
+                                    }
+                                    String stringId = Integer.toString(c.getInt(c.getColumnIndex(TaskContract.TaskEntry._ID)));
+                                    Uri uri = TaskContract.TaskEntry.CONTENT_URI;
+                                    uri = uri.buildUpon().appendPath(stringId).build();
+                                    getContentResolver().delete(uri, null, null);
+                                } while (c.moveToNext());
+                            }
+                        }
+                    });
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                    alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[8]));
+                    Button nbutton = alert.getButton(DialogInterface.BUTTON_NEGATIVE);
+                    nbutton.setTextColor(color[9]);
+                    Button pbutton = alert.getButton(DialogInterface.BUTTON_POSITIVE);
+                    pbutton.setTextColor(color[9]);
+                }
+            }
+        });
+    }
+
+    public void fabAddListListener(){
+        FloatingActionButton fabAddList = (FloatingActionButton) findViewById(R.id.fabAddList);
+
+        fabAddList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage(Html.fromHtml("<h1 style=\"font-size:100%;\"><font color='"+color[9]+"'>Add a list</font></h1>"));
+// Set up the input
+                final EditText input = new EditText(MainActivity.this);
+// Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                builder.setView(input);
+                input.setTextColor(color[9]);
+                builder.setCancelable(false);
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+// Set up the buttons
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        currentSpinnerText = input.getText().toString();
+                        mainSpinnerUpdate(currentSpinnerText,1);
+                        mainSpinner.setSelection(arrayListOfList.indexOf(currentSpinnerText));
+                        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+                alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[8]));
+                Button nbutton = alert.getButton(DialogInterface.BUTTON_NEGATIVE);
+                nbutton.setTextColor(color[9]);
+                Button pbutton = alert.getButton(DialogInterface.BUTTON_POSITIVE);
+                pbutton.setTextColor(color[9]);
+
+            }
+        });
+    }
+
+    public void mainSpinnerListener(){
+        mainSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                currentSpinnerText = mainSpinner.getSelectedItem().toString();
+                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+    }
+
+    public void searchTextListener(){
+        EditText Field1 = (EditText) findViewById(R.id.searchEditText);
+        Field1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                searchText =  s.toString() ;
+                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
+            }
+        });
+    }
+
+    public void mainSpinnerUpdate(String text, int code){
+        if (code == 1 && !(arrayListOfList.contains(text)||text.equals(""))){
+            arrayListOfList.add(text);
+        }
+        if(code == 2 && !(text.equals("trash")) ){
+                arrayListOfList.remove(text);
+        }
+        ArrayAdapter<String> myAdapter = mainAdapterSpinner();
+        mainSpinner.setAdapter(myAdapter);
+    }
+
+    public void moveToTrash(String description, int priority, String list){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(TaskContract.TaskEntry.COLUMN_DESCRIPTION, description);
+        contentValues.put(TaskContract.TaskEntry.COLUMN_PRIORITY, priority);
+        contentValues.put(TaskContract.TaskEntry.COLUMN_LIST,list);
+        // Insert the content values via a ContentResolver
+        getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, contentValues);
+    }
+
+    public void colorSetter(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        View someView;
+        String checkID; int resID;
+        color[0]=preferences.getInt("pref1", Color.RED);
+        color[1]=preferences.getInt("pref2", Color.YELLOW);
+        color[2]=preferences.getInt("pref3", Color.BLUE);
+        color[3]=preferences.getInt("pref4", Color.MAGENTA);
+        color[4]=preferences.getInt("pref5", Color.GREEN);
+        color[5]=preferences.getInt("pref6", Color.CYAN);
+        color[6]=preferences.getInt("pref7", Color.GRAY);
+        color[7]=preferences.getInt("pref8", Color.RED);
+        color[8]=preferences.getInt("pref9", Color.WHITE);
+        color[9]=preferences.getInt("pref10",Color.BLACK);
+        for (int i = 0; i < 8; i++){
+            //color[i]=preferences.getInt("pref"+(i+1),0);
+            checkID = "checkP" + (i + 1);
+            resID = getResources().getIdentifier(checkID, "id", getPackageName());
+            someView = findViewById(resID);
+            someView.setBackgroundColor(color[i]);
+        }
+
+        someView =findViewById(R.id.mainToolbar);
+        someView.setBackgroundColor(color[8]);
+        View root = someView.getRootView();
+        root.setBackgroundColor(color[8]);
+        TextView textView = (TextView) findViewById(R.id.searchEditText);
+        textView.setHintTextColor(color[9]);
+        textView.setTextColor(color[9]);
+    }
+
+    public void onCreateSetCheckBoxes(){
+        for(int i=0;i<filter.length;i++){
+            filter[i]=true;
+        }
+    }
+
+    public void onCreateFillarrayListOfList(){
+        Cursor c =getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                TaskContract.TaskEntry.COLUMN_PRIORITY);
+        if(c.moveToFirst()) {
+            do {
+                final String text = c.getString(c.getColumnIndex(TaskContract.TaskEntry.COLUMN_LIST));
+                mainSpinnerUpdate(text,1);
+            } while (c.moveToNext());
+        }
+    }
+
+    public ArrayAdapter<String> mainAdapterSpinner(){
+        ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(MainActivity.this,
+                R.layout.custom_spinner_item,
+                arrayListOfList){
+            @Override
+            public View getDropDownView(int position, View convertView,ViewGroup parent) {
+                // TODO Auto-generated method stub
+
+                View view = super.getView(position, convertView, parent);
+                view.setBackgroundColor(color[8]);
+                TextView text = (TextView)view;
+                text.setTextColor(color[9]);
+                text.setTextSize(18);
+
+                return view;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                // TODO Auto-generated method stub
+
+                View view = super.getView(position, convertView, parent);
+                view.setBackgroundColor(color[8]);
+
+                TextView text = (TextView)view;
+                text.setTextColor(color[9]);
+                text.setTextSize(18);
+
+                return view;
+            }
+        };
+        myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return myAdapter;
+    }
 
     /**
      * This method is called after this activity has been paused or restarted.
      * Often, this is after new data has been inserted through an AddTaskActivity,
      * so this restarts the loader to re-query the underlying data for any changes.
      */
+
     @Override
     protected void onResume() {
         super.onResume();
 
         // re-queries for all tasks
+        colorSetter();
         getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
     }
-
 
     /**
      * Instantiates and returns a new AsyncTaskLoader with the given ID.
@@ -191,24 +514,22 @@ public class MainActivity extends AppCompatActivity implements
 
                 // Query and load all task data in the background; sort by priority
                 // [Hint] use a try/catch block to catch any errors in loading data
-                final String[] projection = {TaskContract.TaskEntry._ID,TaskContract.TaskEntry.COLUMN_DESCRIPTION,TaskContract.TaskEntry.COLUMN_PRIORITY};
-                final String sa1 = filter[0]?"1":"0";
-                final String sa2 = filter[1]?"2":"0";
-                final String sa3 = filter[2]?"3":"0";
-                final String sa4 = filter[3]?"4":"0";
-                final String sa5 = filter[4]?"5":"0";
-                final String sa6 = filter[5]?"6":"0";
-                final String sa7 = search;
-
-
-
+                final String[] projection = {TaskContract.TaskEntry._ID,TaskContract.TaskEntry.COLUMN_DESCRIPTION,
+                        TaskContract.TaskEntry.COLUMN_LIST,TaskContract.TaskEntry.COLUMN_PRIORITY};
+                // make string array for loop assigning
+                final String sa[] = new String[10]; //sa = selection argument
+                for (int i = 0; i<8;i++){
+                    sa[i]=filter[i]?""+(i+1)+"":"0";
+                }
+                sa[8]=searchText;sa[9]=currentSpinnerText;
 
                 try {
                     return getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,
                             projection,
-                            TaskContract.TaskEntry.COLUMN_PRIORITY + " IN(?,?,?,?,?,?) AND "
-                                    + TaskContract.TaskEntry.COLUMN_DESCRIPTION + " LIKE '%" + sa7 + "%'",
-                            new String[] {sa1, sa2, sa3, sa4, sa5, sa6},
+                            TaskContract.TaskEntry.COLUMN_PRIORITY + " IN(?,?,?,?,?,?,?,?) AND "
+                                    + TaskContract.TaskEntry.COLUMN_DESCRIPTION + " LIKE '%" + sa[8] + "%' AND "
+                                    + TaskContract.TaskEntry.COLUMN_LIST + " == '" + sa[9] + "'",
+                            new String[] {sa[0], sa[1], sa[2], sa[3], sa[4], sa[5], sa[6], sa[7]},
                             TaskContract.TaskEntry.COLUMN_PRIORITY);
 
                 } catch (Exception e) {
@@ -254,68 +575,19 @@ public class MainActivity extends AppCompatActivity implements
         }
 
     public void onCheckboxClicked(View view) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         // Is the view now checked?
         boolean checked = ((CheckBox) view).isChecked();
         // Check which checkbox was clicked
-        switch(view.getId()) {
-            case R.id.checkP1:
-                filter[0]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 1f " + filter[0],Toast.LENGTH_SHORT).show();
+        String checkID; int resID;
+        for (int i = 0; i < 8; i++){
+            checkID = "checkP" + (i + 1);
+            resID = getResources().getIdentifier(checkID, "id", getPackageName());
+            if (view.getId()==resID) {
+                filter[i] = checked ? true : false;
                 getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
                 break;
-            case R.id.checkP2:
-                filter[1]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 2f " + filter[1],Toast.LENGTH_SHORT).show();
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                break;
-            case R.id.checkP3:
-                filter[2]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 3f " + filter[2],Toast.LENGTH_SHORT).show();
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                break;
-            case R.id.checkP4:
-                filter[3]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 4f " + filter[3],Toast.LENGTH_SHORT).show();
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                break;
-            case R.id.checkP5:
-                filter[4]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 5f " + filter[4],Toast.LENGTH_SHORT).show();
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                break;
-            case R.id.checkP6:
-                filter[5]=checked? true: false;
-                Toast.makeText(view.getContext(),"Clicked 6f " + filter[5],Toast.LENGTH_SHORT).show();
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                break;
+            }
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_search, menu);
-        MenuItem item = menu.findItem(R.id.menuSearch);
-        SearchView searchView = (SearchView) item.getActionView();
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener(){
-            @Override
-            public boolean onQueryTextSubmit(String query){
-                search = "%" + query + "%";
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText){
-                search = "%" + newText + "%";
-                getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
-                return false;
-            }
-
-        });
-        return super.onCreateOptionsMenu(menu);
-    }
-
 }
-

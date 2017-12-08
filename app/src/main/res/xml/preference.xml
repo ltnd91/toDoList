@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref1"
+        android:defaultValue="@color/materialRed"
+        android:title="color1" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref2"
+        android:defaultValue="@color/materialOrange"
+        android:title="color2" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref3"
+        android:defaultValue="@color/materialYellow"
+        android:title="color3" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref4"
+        android:defaultValue="@color/materialGreen"
+        android:title="color4" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref5"
+        android:defaultValue="@color/materialBlue"
+        android:title="color5"/>
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref6"
+        android:defaultValue="@color/materialPurple"
+        android:title="color6" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref7"
+        android:defaultValue="@color/materialRed"
+        android:title="color7" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref8"
+        android:defaultValue="@color/materialOrange"
+        android:title="color8" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref9"
+        android:defaultValue="@color/colorPrimaryLight"
+        android:title="background" />
+    <com.delaroystudios.todolist.AmbilWarnaPreference
+        android:key="pref10"
+        android:defaultValue="@color/materialBlack"
+        android:title="textcolor" />
+
+</PreferenceScreen>
