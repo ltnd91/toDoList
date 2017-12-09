@@ -19,7 +19,7 @@ public class AmbilWarnaDemoPreferenceActivity extends PreferenceActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.preference);
-		getListView().setBackgroundColor(MainActivity.color[8]);
+		getListView().setBackgroundColor(MainActivity.color[6]);
 
 		}
 	}

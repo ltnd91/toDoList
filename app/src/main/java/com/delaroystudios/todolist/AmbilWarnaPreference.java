@@ -26,7 +26,7 @@ public class AmbilWarnaPreference extends Preference {
 
 	@Override
     protected void onBindView(View view) {
-		((TextView) view.findViewById(android.R.id.title)).setTextColor(MainActivity.color[9]);
+		((TextView) view.findViewById(android.R.id.title)).setTextColor(MainActivity.color[7]);
 		((TextView) view.findViewById(android.R.id.title)).setTextSize(18);
 		super.onBindView(view);
 

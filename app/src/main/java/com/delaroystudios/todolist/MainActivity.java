@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements
     RecyclerView mRecyclerView;
 
     //global variables that are passed to other activities
-    public static int color[]=new int[10]; // color[0] to color[7] = groups color[8] = background color[9] = text
+    public static int color[]=new int[8]; // color[0] to color[5] = groups color[6] = background color[7] = text
     private String currentSpinnerText = "";
     public static ArrayList<String> arrayListOfList = new ArrayList<String>();
 
@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 if(arrayListOfList.size()>0){
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage(Html.fromHtml("<h1 style =\"font-size:100%;\"><font color='"+color[9]+"'>Do you want to delete list " +
+                    builder.setMessage(Html.fromHtml("<h1 style =\"font-size:100%;\"><font color='"+color[7]+"'>Do you want to delete list " +
                             mainSpinner.getSelectedItem().toString()+"</font></h1>"));
                     builder.setCancelable(false);
                     builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -274,11 +274,11 @@ public class MainActivity extends AppCompatActivity implements
                     });
                     AlertDialog alert = builder.create();
                     alert.show();
-                    alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[8]));
+                    alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[6]));
                     Button nbutton = alert.getButton(DialogInterface.BUTTON_NEGATIVE);
-                    nbutton.setTextColor(color[9]);
+                    nbutton.setTextColor(color[7]);
                     Button pbutton = alert.getButton(DialogInterface.BUTTON_POSITIVE);
-                    pbutton.setTextColor(color[9]);
+                    pbutton.setTextColor(color[7]);
                 }
             }
         });
@@ -291,12 +291,12 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage(Html.fromHtml("<h1 style=\"font-size:100%;\"><font color='"+color[9]+"'>Add a list</font></h1>"));
+                builder.setMessage(Html.fromHtml("<h1 style=\"font-size:100%;\"><font color='"+color[7]+"'>Add a list</font></h1>"));
 // Set up the input
                 final EditText input = new EditText(MainActivity.this);
 // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
                 builder.setView(input);
-                input.setTextColor(color[9]);
+                input.setTextColor(color[7]);
                 builder.setCancelable(false);
                 builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -315,11 +315,11 @@ public class MainActivity extends AppCompatActivity implements
                 });
                 AlertDialog alert = builder.create();
                 alert.show();
-                alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[8]));
+                alert.getWindow().setBackgroundDrawable(new ColorDrawable(color[6]));
                 Button nbutton = alert.getButton(DialogInterface.BUTTON_NEGATIVE);
-                nbutton.setTextColor(color[9]);
+                nbutton.setTextColor(color[7]);
                 Button pbutton = alert.getButton(DialogInterface.BUTTON_POSITIVE);
-                pbutton.setTextColor(color[9]);
+                pbutton.setTextColor(color[7]);
 
             }
         });
@@ -386,15 +386,13 @@ public class MainActivity extends AppCompatActivity implements
         String checkID; int resID;
         color[0]=preferences.getInt("pref1", Color.RED);
         color[1]=preferences.getInt("pref2", Color.YELLOW);
-        color[2]=preferences.getInt("pref3", Color.BLUE);
-        color[3]=preferences.getInt("pref4", Color.MAGENTA);
-        color[4]=preferences.getInt("pref5", Color.GREEN);
-        color[5]=preferences.getInt("pref6", Color.CYAN);
-        color[6]=preferences.getInt("pref7", Color.GRAY);
-        color[7]=preferences.getInt("pref8", Color.RED);
-        color[8]=preferences.getInt("pref9", Color.WHITE);
-        color[9]=preferences.getInt("pref10",Color.BLACK);
-        for (int i = 0; i < 8; i++){
+        color[2]=preferences.getInt("pref3", Color.GREEN);
+        color[3]=preferences.getInt("pref4", Color.CYAN);
+        color[4]=preferences.getInt("pref5", Color.MAGENTA);
+        color[5]=preferences.getInt("pref6", Color.GRAY);
+        color[6]=preferences.getInt("pref7", Color.LTGRAY);
+        color[7]=preferences.getInt("pref8", Color.BLACK);
+        for (int i = 0; i < 6; i++){
             //color[i]=preferences.getInt("pref"+(i+1),0);
             checkID = "checkP" + (i + 1);
             resID = getResources().getIdentifier(checkID, "id", getPackageName());
@@ -403,12 +401,12 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         someView =findViewById(R.id.mainToolbar);
-        someView.setBackgroundColor(color[8]);
+        someView.setBackgroundColor(color[6]);
         View root = someView.getRootView();
-        root.setBackgroundColor(color[8]);
+        root.setBackgroundColor(color[6]);
         TextView textView = (TextView) findViewById(R.id.searchEditText);
-        textView.setHintTextColor(color[9]);
-        textView.setTextColor(color[9]);
+        textView.setHintTextColor(color[7]);
+        textView.setTextColor(color[7]);
     }
 
     public void onCreateSetCheckBoxes(){
@@ -433,16 +431,16 @@ public class MainActivity extends AppCompatActivity implements
 
     public ArrayAdapter<String> mainAdapterSpinner(){
         ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(MainActivity.this,
-                R.layout.custom_spinner_item,
+                R.layout.support_simple_spinner_dropdown_item,
                 arrayListOfList){
             @Override
             public View getDropDownView(int position, View convertView,ViewGroup parent) {
                 // TODO Auto-generated method stub
 
                 View view = super.getView(position, convertView, parent);
-                view.setBackgroundColor(color[8]);
+                view.setBackgroundColor(color[6]);
                 TextView text = (TextView)view;
-                text.setTextColor(color[9]);
+                text.setTextColor(color[7]);
                 text.setTextSize(18);
 
                 return view;
@@ -453,10 +451,10 @@ public class MainActivity extends AppCompatActivity implements
                 // TODO Auto-generated method stub
 
                 View view = super.getView(position, convertView, parent);
-                view.setBackgroundColor(color[8]);
+                view.setBackgroundColor(color[6]);
 
                 TextView text = (TextView)view;
-                text.setTextColor(color[9]);
+                text.setTextColor(color[7]);
                 text.setTextSize(18);
 
                 return view;
@@ -517,19 +515,19 @@ public class MainActivity extends AppCompatActivity implements
                 final String[] projection = {TaskContract.TaskEntry._ID,TaskContract.TaskEntry.COLUMN_DESCRIPTION,
                         TaskContract.TaskEntry.COLUMN_LIST,TaskContract.TaskEntry.COLUMN_PRIORITY};
                 // make string array for loop assigning
-                final String sa[] = new String[10]; //sa = selection argument
-                for (int i = 0; i<8;i++){
+                final String sa[] = new String[8]; //sa = selection argument
+                for (int i = 0; i<6;i++){
                     sa[i]=filter[i]?""+(i+1)+"":"0";
                 }
-                sa[8]=searchText;sa[9]=currentSpinnerText;
+                sa[6]=searchText;sa[7]=currentSpinnerText;
 
                 try {
                     return getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,
                             projection,
-                            TaskContract.TaskEntry.COLUMN_PRIORITY + " IN(?,?,?,?,?,?,?,?) AND "
-                                    + TaskContract.TaskEntry.COLUMN_DESCRIPTION + " LIKE '%" + sa[8] + "%' AND "
-                                    + TaskContract.TaskEntry.COLUMN_LIST + " == '" + sa[9] + "'",
-                            new String[] {sa[0], sa[1], sa[2], sa[3], sa[4], sa[5], sa[6], sa[7]},
+                            TaskContract.TaskEntry.COLUMN_PRIORITY + " IN(?,?,?,?,?,?) AND "
+                                    + TaskContract.TaskEntry.COLUMN_DESCRIPTION + " LIKE '%" + sa[6] + "%' AND "
+                                    + TaskContract.TaskEntry.COLUMN_LIST + " == '" + sa[7] + "'",
+                            new String[] {sa[0], sa[1], sa[2], sa[3], sa[4], sa[5]},
                             TaskContract.TaskEntry.COLUMN_PRIORITY);
 
                 } catch (Exception e) {
@@ -575,12 +573,11 @@ public class MainActivity extends AppCompatActivity implements
         }
 
     public void onCheckboxClicked(View view) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         // Is the view now checked?
         boolean checked = ((CheckBox) view).isChecked();
         // Check which checkbox was clicked
         String checkID; int resID;
-        for (int i = 0; i < 8; i++){
+        for (int i = 0; i < 6; i++){
             checkID = "checkP" + (i + 1);
             resID = getResources().getIdentifier(checkID, "id", getPackageName());
             if (view.getId()==resID) {

@@ -46,21 +46,110 @@ public class AddTaskActivity extends AppCompatActivity {
     private int mPriority;
     Spinner addTaskSpinner;
     ArrayList<String> arrayListOfList = new ArrayList<String>();
-    String selectedList = "garbage";
-
+    String selectedList;
+    String taskDescription;
+    String stringId;
+    Boolean editTask;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
+        getOtherActivityExtras();
         addTaskSpinner = (Spinner) findViewById(R.id.addTaskSpinner);
-        // Initialize to highest mPriority by default (mPriority = 1)
-        ((RadioButton) findViewById(R.id.radButton1)).setChecked(true);
-        mPriority = 1;
+        configureAddTaskSpinner();
+        addTaskSpinnerListener();
+        if (editTask)
+            onCreateEditTaskValues();
+        else
+            onCreateNewTaskValues();
+        colorSetter();
+    }
+
+
+    /**
+     * onClickAddTask is called when the "ADD" button is clicked.
+     * It retrieves user input and inserts that new task data into the underlying database.
+     */
+    public void onClickAddTask(View view) {
+        // Not yet implemented
+
+
+        if(editTask)
+            onClickEditTaskDeleteOldCopy();
+        onClickAddTaskToTable();
+
+        // Display the URI that's returned with a Toast
+        // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+        //if(uri != null) {
+           // Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+        //}
+
+        // Finish activity (this returns back to MainActivity)
+        finish();
+
+    }
+
+
+    /**
+     * onPrioritySelected is called whenever a priority button is clicked.
+     * It changes the value of mPriority based on the selected button.
+     */
+    public void onPrioritySelected(View view) {
+        String radButtonID; int resID;
+        for(int i = 1; i<7; i++){
+            radButtonID = "radButton" + i;
+            resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
+            if (((RadioButton) findViewById(resID)).isChecked()) {
+                mPriority = i;
+                updateEditTextBackgroundColor();
+                break;
+            }
+        }
+    }
+
+    public void updateEditTextBackgroundColor(){
+        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+        textView.setBackgroundColor(MainActivity.color[(mPriority-1)]);
+    }
+
+    public void getOtherActivityExtras(){
         Intent iin = getIntent();
         Bundle b = iin.getExtras();
         arrayListOfList = b.getStringArrayList("arrayListOfList");
-        colorSetter();
+        selectedList = b.get("list").toString();
+        editTask = (Boolean) b.get("editFlag");
+        if(editTask){
+            mPriority = Integer.parseInt(b.get("priority").toString());
+            taskDescription = b.get("description").toString();
+            stringId = b.get("id").toString();
+        }
+    }
+
+    public void colorSetter(){
+        View someView;
+        String buttonID; int resID;
+        for(int i = 0;i<6;i++){
+            buttonID = "buttonColor" + (i + 1);
+            resID = getResources().getIdentifier(buttonID, "id", getPackageName());
+            someView = findViewById(resID);
+            someView.setBackgroundColor(MainActivity.color[i]);
+        }
+        someView = findViewById(R.id.addTaskSpinner);
+        someView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+        View root = someView.getRootView();
+        root.setBackgroundColor(MainActivity.color[6]);
+        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+        textView.setTextColor(MainActivity.color[7]);
+        textView.setHintTextColor(MainActivity.color[7]);
+        textView = (TextView) findViewById(R.id.priorityLabel);
+        textView.setTextColor(MainActivity.color[7]);
+        textView = (TextView) findViewById(R.id.listLabel);
+        textView.setTextColor(MainActivity.color[7]);
+        updateEditTextBackgroundColor();
+    }
+
+    public void configureAddTaskSpinner(){
         ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(AddTaskActivity.this,
-                R.layout.custom_spinner_item,
+                R.layout.support_simple_spinner_dropdown_item,
                 arrayListOfList){
             @Override
             public View getDropDownView(int position, View convertView,ViewGroup parent) {
@@ -91,26 +180,19 @@ public class AddTaskActivity extends AppCompatActivity {
         };
         myAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         addTaskSpinner.setAdapter(myAdapter);
-        selectedList = addTaskSpinner.getSelectedItem().toString();
-        addTaskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(AddTaskActivity.this,
-                        addTaskSpinner.getSelectedItem().toString(),
-                        Toast.LENGTH_SHORT)
-                        .show();
-                selectedList = addTaskSpinner.getSelectedItem().toString();
-            }
+        addTaskSpinner.setSelection(arrayListOfList.indexOf(selectedList));
+    }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
-        });
-        if ((Boolean)b.get("editFlag")) {
-            ((EditText) findViewById(R.id.editTextTaskDescription)).setText(b.get("description").toString());
-            mPriority = Integer.parseInt(b.get("priority").toString());
+    public void onCreateNewTaskValues(){
+        ((RadioButton) findViewById(R.id.radButton1)).setChecked(true);
+        mPriority = 1;
+
+    }
+
+    public void onCreateEditTaskValues(){
+            ((EditText) findViewById(R.id.editTextTaskDescription)).setText(taskDescription);
             String radButtonID; int resID;
-            for(int i = 1; i<9; i++){
+            for(int i = 1; i<7; i++){
                 radButtonID = "radButton" + i;
                 resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
                 if(mPriority==i){
@@ -118,98 +200,46 @@ public class AddTaskActivity extends AppCompatActivity {
                     break;
                 }
             }
-        }
-        addTaskSpinner.setSelection(myAdapter.getPosition(b.get("list").toString()));
-        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
-        textView.setBackgroundColor(MainActivity.color[(mPriority-1)]);
     }
 
+    public void onClickEditTaskDeleteOldCopy(){
+        // Build appropriate uri with String row id appended
+        Uri uri = TaskContract.TaskEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
 
-    /**
-     * onClickAddTask is called when the "ADD" button is clicked.
-     * It retrieves user input and inserts that new task data into the underlying database.
-     */
-    public void onClickAddTask(View view) {
-        // Not yet implemented
+        // COMPLETED (2) Delete a single row of data using a ContentResolver
+        getContentResolver().delete(uri, null, null);
+    }
+
+    public void onClickAddTaskToTable(){
         // Check if EditText is empty, if not retrieve input and store it in a ContentValues object
         // If the EditText input is empty -> don't create an entry
         String input = ((EditText) findViewById(R.id.editTextTaskDescription)).getText().toString();
         if (input.length() == 0) {
             return;
         }
-
+        // Put the task description and selected mPriority into the ContentValues
         // Insert new task data via a ContentResolver
         // Create new empty ContentValues object
         ContentValues contentValues = new ContentValues();
-        // Put the task description and selected mPriority into the ContentValues
-        Intent iin = getIntent();
-        Bundle b = iin.getExtras();
-        if ((Boolean)b.get("editFlag")){
-            int id = Integer.parseInt(b.get("id").toString());
-
-            // Build appropriate uri with String row id appended
-            String stringId = Integer.toString(id);
-            Uri uri = TaskContract.TaskEntry.CONTENT_URI;
-            uri = uri.buildUpon().appendPath(stringId).build();
-
-            // COMPLETED (2) Delete a single row of data using a ContentResolver
-            getContentResolver().delete(uri, null, null);
-        }
         contentValues.put(TaskContract.TaskEntry.COLUMN_DESCRIPTION, input);
         contentValues.put(TaskContract.TaskEntry.COLUMN_PRIORITY, mPriority);
         contentValues.put(TaskContract.TaskEntry.COLUMN_LIST,selectedList);
         // Insert the content values via a ContentResolver
-        Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, contentValues);
-
-        // Display the URI that's returned with a Toast
-        // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
-        if(uri != null) {
-            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
-        }
-
-        // Finish activity (this returns back to MainActivity)
-        finish();
-
+        getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, contentValues);
     }
 
-
-    /**
-     * onPrioritySelected is called whenever a priority button is clicked.
-     * It changes the value of mPriority based on the selected button.
-     */
-    public void onPrioritySelected(View view) {
-        String radButtonID; int resID;
-        for(int i = 1; i<9; i++){
-            radButtonID = "radButton" + i;
-            resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
-            if (((RadioButton) findViewById(resID)).isChecked()) {
-                mPriority = i;
-                TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
-                textView.setBackgroundColor(MainActivity.color[(i-1)]);
-                break;
+    public void addTaskSpinnerListener(){
+        addTaskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                selectedList = addTaskSpinner.getSelectedItem().toString();
             }
-        }
-    }
-    public void colorSetter(){
-        View someView;
-        String buttonID; int resID;
-        for(int i = 0;i<8;i++){
-            buttonID = "buttonP" + (i + 1);
-            resID = getResources().getIdentifier(buttonID, "id", getPackageName());
-            someView = findViewById(resID);
-            someView.setBackgroundColor(MainActivity.color[i]);
-        }
-        someView = findViewById(R.id.addTaskSpinner);
-        someView.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-        View root = someView.getRootView();
-        root.setBackgroundColor(MainActivity.color[8]);
-        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
-        textView.setTextColor(MainActivity.color[9]);
-        textView.setHintTextColor(MainActivity.color[9]);
-        textView = (TextView) findViewById(R.id.priorityLabel);
-        textView.setTextColor(MainActivity.color[9]);
-        textView = (TextView) findViewById(R.id.listLabel);
-        textView.setTextColor(MainActivity.color[9]);
 
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
     }
+
 }

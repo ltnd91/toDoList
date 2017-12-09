@@ -99,19 +99,17 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
 
         //Set values
         holder.itemView.setTag(id);
+        holder.itemView.setBackgroundColor(MainActivity.color[6]);
         holder.taskDescriptionView.setText(description);
-        holder.taskDescriptionView.setTextColor(MainActivity.color[9]);
-        holder.listView.setText(list);
-
-        // Programmatically set the text and color for the priority TextView
-        String priorityString = "" + priority; // converts int to String
-        holder.priorityView.setText(priorityString);
-
+        holder.taskDescriptionView.setTextColor(MainActivity.color[7]);
         GradientDrawable priorityCircle = (GradientDrawable) holder.priorityView.getBackground();
-        // Get the appropriate background color based on the priority
-        int priorityColor = getPriorityColor(priority);
-        priorityCircle.setColor(priorityColor);
-        holder.itemView.setBackgroundColor(priorityColor);
+        priorityCircle.setColor(getPriorityColor(priority));
+
+        //These values do not show I set them here so I can pass them to add task activity
+        holder.listView.setText(list); // addTaskIntent.putExtra("list",listView.getText().toString());
+        holder.priorityView.setText(Integer.toString(priority)); // addTaskIntent.putExtra("priority",priorityView.getText().toString());
+        holder.priorityView.setTextSize(0);
+
     }
 
 
@@ -121,7 +119,7 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
     */
     private int getPriorityColor(int priority) {
         int priorityColor = 0;
-        for(int i = 0; i<8;i++){
+        for(int i = 0; i<6;i++){
             if(priority == i+1){
                 return MainActivity.color[i];
             }
@@ -169,8 +167,6 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
         TextView taskDescriptionView;
         TextView priorityView;
         TextView listView;
-
-
         /**
          * Constructor for the TaskViewHolders.
          *
@@ -188,7 +184,6 @@ public class CustomCursorAdapter extends RecyclerView.Adapter<CustomCursorAdapte
                     Intent addTaskIntent = new Intent(v.getContext(),AddTaskActivity.class);
                     addTaskIntent.putExtra("editFlag",true);
                     addTaskIntent.putExtra("id",v.getTag().toString());
-                    Toast.makeText(v.getContext(),"Color " + priorityView.getText().toString(),Toast.LENGTH_SHORT).show();
                     addTaskIntent.putExtra("description",taskDescriptionView.getText().toString());
                     addTaskIntent.putExtra("priority",priorityView.getText().toString());
                     addTaskIntent.putExtra("list",listView.getText().toString());
