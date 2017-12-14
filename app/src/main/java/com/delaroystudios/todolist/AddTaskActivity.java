@@ -100,14 +100,14 @@ public class AddTaskActivity extends AppCompatActivity {
             resID = getResources().getIdentifier(radButtonID, "id", getPackageName());
             if (((RadioButton) findViewById(resID)).isChecked()) {
                 mPriority = i;
-                updateEditTextBackgroundColor();
+                updateTextTaskColor();
                 break;
             }
         }
     }
 
-    public void updateEditTextBackgroundColor(){
-        TextView textView = (TextView) findViewById(R.id.editTextTaskDescription);
+    public void updateTextTaskColor(){
+        TextView textView = (TextView) findViewById(R.id.textTaskColor);
         textView.setBackgroundColor(MainActivity.color[(mPriority-1)]);
     }
 
@@ -144,12 +144,12 @@ public class AddTaskActivity extends AppCompatActivity {
         textView.setTextColor(MainActivity.color[7]);
         textView = (TextView) findViewById(R.id.listLabel);
         textView.setTextColor(MainActivity.color[7]);
-        updateEditTextBackgroundColor();
+        updateTextTaskColor();
     }
 
     public void configureAddTaskSpinner(){
         ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(AddTaskActivity.this,
-                R.layout.support_simple_spinner_dropdown_item,
+                R.layout.custom_spinner_item,
                 arrayListOfList){
             @Override
             public View getDropDownView(int position, View convertView,ViewGroup parent) {

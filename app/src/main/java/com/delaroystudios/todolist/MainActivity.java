@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public ArrayAdapter<String> mainAdapterSpinner(){
         ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(MainActivity.this,
-                R.layout.support_simple_spinner_dropdown_item,
+                R.layout.custom_spinner_item,
                 arrayListOfList){
             @Override
             public View getDropDownView(int position, View convertView,ViewGroup parent) {
@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements
                 view.setBackgroundColor(color[6]);
                 TextView text = (TextView)view;
                 text.setTextColor(color[7]);
-                text.setTextSize(18);
+                text.setTextSize(22);
 
                 return view;
             }
@@ -455,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 TextView text = (TextView)view;
                 text.setTextColor(color[7]);
-                text.setTextSize(18);
+                text.setTextSize(22);
 
                 return view;
             }
